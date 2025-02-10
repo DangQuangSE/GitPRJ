@@ -1,7 +1,7 @@
 <%-- 
     Document   : example01
-    Created on : Feb 10, 2025, 12:55:45 PM
-    Author     : Dell
+    Created on : Feb 10, 2025, 12:55:16 PM
+    Author     : tungi
 --%>
 
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
@@ -12,6 +12,11 @@
         <title>JSP Page</title>
     </head>
     <body>
-        <h1>Hello World!</h1>
+        <%! int a = 9; %>
+        <%
+            double b;
+            b = Math.sqrt(a);
+        %>
+        Kết quả: sqrt(<%=a%>) = <span style="color: red"><%=b%></span>;
     </body>
 </html>
