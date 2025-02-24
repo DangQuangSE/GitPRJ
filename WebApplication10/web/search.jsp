@@ -13,6 +13,7 @@
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <title>JSP Page</title>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     </head>
     <body>
         <%@include file="header.jsp" %>
@@ -53,6 +54,7 @@
                     <td>PublishYear</td>
                     <td>Price</td>
                     <td>Quantity</td>
+                     <th>Action</th>
                 </tr>
                 <%
                     for (BookDTO b : books) {
@@ -64,6 +66,9 @@
                     <td><%=b.getPublishYear()%></td>
                     <td><%=b.getPrice()%></td>
                     <td><%=b.getQuantity()%></td>
+                    <td><a href="MainController?action=delete&id=<%=b.getBookID()%>&searchTerm=<%=searchTerm%>">
+                            <i class="fa-solid fa-trash" style="color: black"></i>                                
+                            </a></td>
                 </tr>
                 <%
                     }

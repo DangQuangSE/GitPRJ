@@ -65,12 +65,49 @@ public class BookDAO implements IDAO<BookDTO, String> {
                         rs.getInt("PublishYear"), 
                         rs.getDouble("Price"), 
                         rs.getInt("Quantity"));
-                list.add(book);
+                    list.add(book);
             }
         } catch (Exception e) {
             System.out.println(e.toString());
         }
         return list;
+    }
+    public List<BookDTO> searchByTitle2(String searchTerm) {
+        String sql ="SELECT * FROM tblBooks WHERE title LIKE ? AND Quantity > 0";
+        List<BookDTO> list = new ArrayList<>();
+        try {
+            Connection conn = DBUtils.getConnection();
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setString(1, "%"+searchTerm+"%");
+            ResultSet rs = ps.executeQuery();
+            while(rs.next()){
+                BookDTO book = new BookDTO(
+                        rs.getString("BookID"), 
+                        rs.getString("Title"), 
+                        rs.getString("Author"), 
+                        rs.getInt("PublishYear"), 
+                        rs.getDouble("Price"), 
+                        rs.getInt("Quantity"));
+                    list.add(book);
+            }
+        } catch (Exception e) {
+            System.out.println(e.toString());
+        }
+        return list;
+    }
+
+    public boolean updateQuantityToZero(String id) {
+         String sql = "UPDATE tblBooks SET Quantity=0 WHERE BookID=?";
+        try {
+            Connection conn = DBUtils.getConnection();
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setString(1, id);
+            int i = ps.executeUpdate();
+            return i > 0;
+        } catch (Exception e) {
+            System.out.println(e.toString());
+        }
+        return false;
     }
 
 }
