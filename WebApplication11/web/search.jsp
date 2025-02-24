@@ -14,7 +14,7 @@
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-16WWW">
         <title>JSP Page</title>
-
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
         <style>
             .book-table {
                 width: 100%;
@@ -81,14 +81,14 @@
 
             <br/>
             <%
-                String searchTerm = request.getAttribute("searchTerm")+"";
-                searchTerm = searchTerm.equals("null")?"":searchTerm;
+                String searchTerm = request.getAttribute("searchTerm") + "";
+                searchTerm = searchTerm.equals("null") ? "" : searchTerm;
             %>
             <form action="MainController">
                 <input type="hidden" name="action" value="search"/>
                 Search Books: <input type="text" name="searchTerm" value="<%=searchTerm%>"/>
                 <input type="submit" value="Search"/>
-                
+
             </form>
 
             <%
@@ -119,7 +119,7 @@
                         <td><%=b.getPrice()%></td>
                         <td><%=b.getQuantity()%></td>
                         <td><a href="MainController?action=delete&id=<%=b.getBookID()%>&searchTerm=<%=searchTerm%>">
-                                <img src="assets/images/delete-icon.png"  style="height: 25px"/>                              
+                                <i class="fa-solid fa-trash" style="color: black"></i>                             
                             </a></td>
                     </tr>
                     <%
