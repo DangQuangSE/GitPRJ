@@ -9,72 +9,66 @@ import dto.BookDTO;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import utils.DBUtils;
 
 /**
  *
- * @author Dell
+ * @author tungi
  */
-public class BookDAO implements IDAO<String, BookDTO> {
+public class BookDAO implements IDAO<BookDTO, String> {
 
     @Override
-    public boolean create(String entity) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public boolean create(BookDTO entity) {
+        return false;
     }
 
     @Override
-    public List<String> readAll() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public List<BookDTO> readAll() {
+        return null;
     }
 
     @Override
-    public String readById(BookDTO id) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public BookDTO readById(String id) {
+        return null;
     }
 
     @Override
-    public boolean update(String entity) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public boolean update(BookDTO entity) {
+        return false;
     }
 
     @Override
-    public boolean delete(BookDTO id) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public boolean delete(String id) {
+        return false;
     }
 
     @Override
-    public List<String> search(String searchTerm) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public List<BookDTO> search(String searchTerm) {
+        return null;
     }
 
     public List<BookDTO> searchByTitle(String searchTerm) {
-
-        String sql = "SELECT + FROM tblBooks WHERE title LIKE ?";
+        String sql ="SELECT * FROM tblBooks WHERE title LIKE ?";
         List<BookDTO> list = new ArrayList<>();
         try {
             Connection conn = DBUtils.getConnection();
             PreparedStatement ps = conn.prepareStatement(sql);
-            ps.setString(1, "%" + searchTerm + "%");
+            ps.setString(1, "%"+searchTerm+"%");
             ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
+            while(rs.next()){
                 BookDTO book = new BookDTO(
-                        rs.getString("BookID"),
-                        rs.getString("Title"),
-                        rs.getString("Author"),
-                        rs.getInt("PublishYear"),
-                        rs.getDouble("Price"),
+                        rs.getString("BookID"), 
+                        rs.getString("Title"), 
+                        rs.getString("Author"), 
+                        rs.getInt("PublishYear"), 
+                        rs.getDouble("Price"), 
                         rs.getInt("Quantity"));
                 list.add(book);
             }
-        } catch (ClassNotFoundException ex) {
-            Logger.getLogger(BookDAO.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (SQLException ex) {
-            Logger.getLogger(BookDAO.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (Exception e) {
+            System.out.println(e.toString());
         }
         return list;
     }
