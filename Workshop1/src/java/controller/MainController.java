@@ -7,9 +7,10 @@ package controller;
 
 import dao.ProjectDAO;
 import dao.UserDAO;
-import dto.StartUpProject;
+import dto.StartUpProjectDTO;
 import dto.UserDTO;
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.List;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
@@ -22,6 +23,7 @@ import javax.servlet.http.HttpServletResponse;
 public class MainController extends HttpServlet {
 
     private static final String LOGIN_PAGE = "login.jsp";
+    public ProjectDAO pjDao = new ProjectDAO();
 
     public UserDTO getUser(String usName) {
         UserDAO usDao = new UserDAO();
@@ -31,6 +33,18 @@ public class MainController extends HttpServlet {
     public boolean verifyUser(String usName, String password) {
         UserDTO us = getUser(usName);
         return us != null && us.getPassword().equals(password);
+    }
+
+    protected void search(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        String searchName = request.getParameter("searchName");
+
+        if (searchName == null) {
+            searchName = "";
+        }
+        List<StartUpProjectDTO> projects = pjDao.searchByName(searchName);
+        request.setAttribute("projects", projects);
+        request.setAttribute("searchTerm", searchName);
     }
 
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
@@ -48,6 +62,7 @@ public class MainController extends HttpServlet {
                     if (verifyUser(usName, pw)) {
                         url = "dashboard.jsp";
                         request.getSession().setAttribute("user", getUser(usName));
+                        search(request, response);
                     } else {
                         url = "login.jsp";
                         request.setAttribute("message", "Incorrect UserName or Password!");
@@ -57,11 +72,20 @@ public class MainController extends HttpServlet {
                     request.getSession().invalidate();
                 } else if (action.equals("search")) {
                     url = "dashboard.jsp";
-                    ProjectDAO pjDao = new ProjectDAO();
-                    String searchName = request.getParameter("searchName");
-                    List<StartUpProject> projects = pjDao.searchByName(searchName);
-                    request.setAttribute("projects", projects);
-                    request.setAttribute("searchTerm", searchName);
+                    search(request, response);
+                } else if (action.equals("create")) {
+                    try {
+                        String pjName = request.getParameter("txtProjectName");
+                        String pjDes = request.getParameter("txtProjectDes");
+                        String pjStatus = request.getParameter("txtStatus");
+                        LocalDate launch_date = LocalDate.parse(request.getParameter("txtLaunchDate"));
+                        StartUpProjectDTO pj = new StartUpProjectDTO(pjName, pjDes, pjStatus, launch_date);
+                        pjDao.create(pj);
+                        url = "dashboard.jsp";
+                        search(request, response);
+                    } catch (Exception e) {
+                        log("Error: " + e.toString());
+                    }
                 }
             }
         } catch (Exception e) {
