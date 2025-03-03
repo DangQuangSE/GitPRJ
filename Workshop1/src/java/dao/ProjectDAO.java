@@ -40,12 +40,28 @@ public class ProjectDAO implements IDAO<StartUpProjectDTO, Integer> {
 
     @Override
     public StartUpProjectDTO readById(Integer id) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return null;
     }
 
     @Override
     public boolean update(StartUpProjectDTO object) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        String sql = "UPDATE [dbo].[tblStartupProjects] SET [project_name] = ?, [Description] = ?,[Status] = ?,[estimated_launch] = ?, WHERE [project_id] = ?";
+        try {
+            Connection conn = DBUtils.getConnection();
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setString(1, object.getProjectName());
+            ps.setString(2, object.getDescription());
+            ps.setString(3, object.getStatus());
+            ps.setDate(4, java.sql.Date.valueOf(object.getEstimated_launch()));
+            ps.setInt(5, object.getProjectId());
+            int n = ps.executeUpdate();
+            return n > 0;
+        } catch (ClassNotFoundException ex) {
+            Logger.getLogger(ProjectDAO.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (SQLException ex) {
+            Logger.getLogger(ProjectDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return false;
     }
 
     @Override
