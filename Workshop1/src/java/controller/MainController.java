@@ -116,7 +116,7 @@ public class MainController extends HttpServlet {
                 LocalDate launch_date = null;
                 try {
                     String date = request.getParameter("txtLaunchDate");
-                    if (date == null || date.trim().isEmpty()) {
+                    if (date == null || date.isEmpty()) {
                         checkError = true;
                         request.setAttribute("errorDate", "Launch date must be selected!");
                     } else {
