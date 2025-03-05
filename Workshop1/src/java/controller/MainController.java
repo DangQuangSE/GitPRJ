@@ -6,9 +6,7 @@
 package controller;
 
 import dao.ProjectDAO;
-import dao.UserDAO;
 import dto.StartUpProjectDTO;
-import dto.UserDTO;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
@@ -18,6 +16,8 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import utils.AuthUtils;
 
 @WebServlet(name = "MainController", urlPatterns = {"/MainController"})
 public class MainController extends HttpServlet {
@@ -25,26 +25,144 @@ public class MainController extends HttpServlet {
     private static final String LOGIN_PAGE = "login.jsp";
     public ProjectDAO pjDao = new ProjectDAO();
 
-    public UserDTO getUser(String usName) {
-        UserDAO usDao = new UserDAO();
-        return usDao.readByUSName(usName);
-    }
-
-    public boolean verifyUser(String usName, String password) {
-        UserDTO us = getUser(usName);
-        return us != null && us.getPassword().equals(password);
-    }
-
-    protected void search(HttpServletRequest request, HttpServletResponse response)
+    private String search(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        String searchName = request.getParameter("searchName");
+        String url = LOGIN_PAGE;
+        HttpSession session = request.getSession();
+        if (AuthUtils.isLoggedIn(session)) {
+            url = url = "dashboard.jsp";
+            String searchName = request.getParameter("searchName");
 
-        if (searchName == null) {
-            searchName = "";
+            if (searchName == null) {
+                searchName = "";
+            }
+            List<StartUpProjectDTO> projects = pjDao.searchByName(searchName);
+            request.setAttribute("projects", projects);
+            request.setAttribute("searchTerm", searchName);
         }
-        List<StartUpProjectDTO> projects = pjDao.searchByName(searchName);
-        request.setAttribute("projects", projects);
-        request.setAttribute("searchTerm", searchName);
+        return url;
+    }
+
+    private String login(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        String url = LOGIN_PAGE;
+        String usName = request.getParameter("txtUsername");
+        String pw = request.getParameter("txtPassword");
+        if (AuthUtils.verifyUser(usName, pw)) {
+            url = "dashboard.jsp";
+            request.getSession().setAttribute("user", AuthUtils.getUser(usName));
+            search(request, response);
+        } else {
+            url = "login.jsp";
+            request.setAttribute("message", "Incorrect UserName or Password!");
+        }
+        return url;
+    }
+
+    private String logout(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        String url = LOGIN_PAGE;
+        HttpSession session = request.getSession();
+        if (AuthUtils.isLoggedIn(session)) {
+            url = "login.jsp";
+            request.getSession().invalidate();
+        }
+        return url;
+    }
+
+    private String update(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        String url = LOGIN_PAGE;
+        HttpSession session = request.getSession();
+        if (AuthUtils.isFounder(session)) {
+            int pjId = Integer.parseInt(request.getParameter("projectID"));
+            String newStatus = request.getParameter("status");
+            StartUpProjectDTO pj = pjDao.readById(pjId);
+            if (!pj.getStatus().equals(newStatus)) {
+                boolean checkSuccess = false;
+                if (pjDao.updateStatus(pjId, newStatus)) {
+                    checkSuccess = true;
+                    request.setAttribute("updateMess", "Update success!");
+                    request.setAttribute("checkSuccess", checkSuccess);
+                } else {
+                    request.setAttribute("checkSuccess", checkSuccess);
+                    request.setAttribute("updateMess", "Update fail!");
+                }
+            }
+            url = "dashboard.jsp";
+            search(request, response);
+        }
+
+        return url;
+    }
+
+    private String back(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        String url = LOGIN_PAGE;
+        HttpSession session = request.getSession();
+        if (AuthUtils.isFounder(session)) {
+            url = "dashboard.jsp";
+            search(request, response);
+        }
+        return url;
+    }
+
+    private String create(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        String url = LOGIN_PAGE;
+        HttpSession session = request.getSession();
+        if (AuthUtils.isFounder(session)) {
+            boolean checkError = false;
+            try {
+                String pjName = request.getParameter("txtProjectName");
+                String pjDes = request.getParameter("txtProjectDes");
+                String pjStatus = request.getParameter("txtStatus");
+                LocalDate launch_date = null;
+                try {
+                    String date = request.getParameter("txtLaunchDate");
+                    if (date == null || date.trim().isEmpty()) {
+                        checkError = true;
+                        request.setAttribute("errorDate", "Launch date must be selected!");
+                    } else {
+                        launch_date = LocalDate.parse(date);
+                        if (launch_date.isAfter(LocalDate.now())) {
+                            checkError = true;
+                            request.setAttribute("errorDate", "Launch date cannot be in the future!");
+                        }
+                    }
+                } catch (Exception e) {
+                    checkError = true;
+                    request.setAttribute("errorDate", "Invalid date format!");
+                }
+
+                if (pjName == null || pjName.trim().isEmpty()) {
+                    checkError = true;
+                    request.setAttribute("errorName", "This field is required!");
+                }
+                if (pjDes == null || pjDes.trim().isEmpty()) {
+                    checkError = true;
+                    request.setAttribute("errorDes", "This field is required!");
+                }
+                if (pjStatus.isEmpty() || pjStatus == null) {
+                    checkError = true;
+                    request.setAttribute("errorStatus", "Status must be selected!");
+                }
+                StartUpProjectDTO newPj = new StartUpProjectDTO(pjName, pjDes, pjStatus, launch_date);
+                if (!checkError) {
+                    pjDao.create(newPj);
+                    url = "dashboard.jsp";
+                    search(request, response);
+                } else {
+                    url = "projectForm.jsp";
+                    request.setAttribute("project", newPj);
+                }
+
+            } catch (Exception e) {
+                log("Error: " + e.toString());
+            }
+        }
+
+        return url;
     }
 
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
@@ -57,35 +175,17 @@ public class MainController extends HttpServlet {
                 url = LOGIN_PAGE;
             } else {
                 if (action.equals("login")) {
-                    String usName = request.getParameter("txtUsername");
-                    String pw = request.getParameter("txtPassword");
-                    if (verifyUser(usName, pw)) {
-                        url = "dashboard.jsp";
-                        request.getSession().setAttribute("user", getUser(usName));
-                        search(request, response);
-                    } else {
-                        url = "login.jsp";
-                        request.setAttribute("message", "Incorrect UserName or Password!");
-                    }
+                    url = login(request, response);
                 } else if (action.equals("logout")) {
-                    url = "login.jsp";
-                    request.getSession().invalidate();
+                    url = logout(request, response);
                 } else if (action.equals("search")) {
-                    url = "dashboard.jsp";
-                    search(request, response);
+                    url = search(request, response);
                 } else if (action.equals("create")) {
-                    try {
-                        String pjName = request.getParameter("txtProjectName");
-                        String pjDes = request.getParameter("txtProjectDes");
-                        String pjStatus = request.getParameter("txtStatus");
-                        LocalDate launch_date = LocalDate.parse(request.getParameter("txtLaunchDate"));
-                        StartUpProjectDTO pj = new StartUpProjectDTO(pjName, pjDes, pjStatus, launch_date);
-                        pjDao.create(pj);
-                        url = "dashboard.jsp";
-                        search(request, response);
-                    } catch (Exception e) {
-                        log("Error: " + e.toString());
-                    }
+                    url = create(request, response);
+                } else if (action.equals("update")) {
+                    url = update(request, response);
+                } else if (action.equals("back")) {
+                    url = back(request, response);
                 }
             }
         } catch (Exception e) {

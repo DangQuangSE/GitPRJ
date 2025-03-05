@@ -11,6 +11,11 @@ public class StartUpProjectDTO {
     private LocalDate estimated_launch;
 
     public StartUpProjectDTO() {
+        this.projectId = 0;
+        this.projectName = "";
+        this.description = "";
+        this.status = "";
+        this.estimated_launch = null;
     }
 
     public StartUpProjectDTO(int projectId, String projectName, String description, String status, LocalDate estimated_launch) {
