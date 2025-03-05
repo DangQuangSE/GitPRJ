@@ -80,7 +80,7 @@
             <input type="submit" value="Save">
             <input type="reset" value="Reset">
         </form>
-
+        <br>
         <%
         } else {
         %>
